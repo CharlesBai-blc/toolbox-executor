@@ -79,8 +79,6 @@ app.post('/execute', limiter, async (req, res) => {
   const jobID = uuidv4();
   const config = LANGUAGES[language];
 
-  // We rename the file inside the container to a standard name (e.g., Main.java)
-  // but keep it unique on the host (/tmp/uuid/Main.java) to prevent conflicts.
   const hostDir = path.join('/tmp', jobID);
   const hostFile = path.join(hostDir, config.filename);
 
