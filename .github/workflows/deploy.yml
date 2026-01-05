@@ -18,7 +18,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY_PEM }}
           script: |
-            cd ~/your-server-folder
+            cd ~/executor/src
             git pull origin main
-            npm install --production
+            echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+            npm install
             pm2 restart executor
