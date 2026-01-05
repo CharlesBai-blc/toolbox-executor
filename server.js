@@ -8,29 +8,28 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// SECURITY LAYER: Trust Cloudflare headers
 app.set('trust proxy', 1);
-
-// SECURITY LAYER: CORS restricted to your frontend
 app.use(cors({
-  origin: 'https://toolbox.charles-bai.com'
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173'
 }));
 app.use(express.json());
 
-// SECURITY LAYER 2: Rate Limiting (10 reqs/min per IP)
+const PORT = process.env.PORT || 3000;
+
+//Rate Limiting (10 reqs/min per IP)
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   message: { error: "Rate limit exceeded. Wait 1 min." }
 });
 
-// SECURITY LAYER 3: Concurrency Queue (Max 2 simultaneous jobs)
+//Concurrency Queue (Max 2 simultaneous jobs)
 let activeJobs = 0;
 const MAX_CONCURRENT_JOBS = 2;
 
 // --- LANGUAGE CONFIGURATION ---
 const LANGUAGES = {
-  // Interpreted Languages (Simple)
+  // Interpreted Languages
   python: {
     image: 'python:3.11-alpine',
     filename: 'main.py',
@@ -42,8 +41,7 @@ const LANGUAGES = {
     runCmd: (file) => `node ${file}`
   },
 
-  // Compiled Languages (Complex)
-  // We use /bin/sh -c to chain compilation and execution
+  // Compiled Languages
   c: {
     image: 'gcc:12',
     filename: 'main.c',
@@ -66,8 +64,8 @@ const LANGUAGES = {
   },
   java: {
     image: 'amazoncorretto:17-alpine',
-    filename: 'Main.java', // Java requires class name matching
-    runCmd: (file) => `java ${file}` // Java 11+ supports running source directly
+    filename: 'Main.java', 
+    runCmd: (file) => `java ${file}` 
   },
 };
 
@@ -88,7 +86,7 @@ app.post('/execute', limiter, async (req, res) => {
   try {
     activeJobs++; // LOCK
 
-    // Create a unique directory for this job (critical for Java/Rust file naming)
+    // Create a unique directory for this job
     await fs.mkdir(hostDir);
     await fs.writeFile(hostFile, code);
 
@@ -127,4 +125,4 @@ app.post('/execute', limiter, async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Multi-Language Executor running on port 3000'));
+app.listen(PORT, () => console.log('Executor running on port ${PORT}'));
