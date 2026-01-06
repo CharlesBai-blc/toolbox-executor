@@ -19,7 +19,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY_PEM }}
           script: |
             cd ~/executor/src
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
             npm install
             pm2 restart executor
