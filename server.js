@@ -17,20 +17,19 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-//Rate Limiting (10 reqs/min per IP)
+// Rate Limiting (10 reqs/min per IP)
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   message: { error: "Rate limit exceeded. Wait 1 min." }
 });
 
-//Concurrency Queue (Max 2 simultaneous jobs)
+// Concurrency Queue (Max 2 simultaneous jobs)
 let activeJobs = 0;
 const MAX_CONCURRENT_JOBS = 2;
 
 // --- LANGUAGE CONFIGURATION ---
 const LANGUAGES = {
-  // Interpreted Languages
   python: {
     image: 'python:3.11-alpine',
     filename: 'main.py',
@@ -41,8 +40,6 @@ const LANGUAGES = {
     filename: 'main.js',
     runCmd: (file) => `node ${file}`
   },
-
-  // Compiled Languages
   c: {
     image: 'gcc:12',
     filename: 'main.c',
@@ -68,6 +65,38 @@ const LANGUAGES = {
     filename: 'Main.java', 
     runCmd: (file) => `java ${file}` 
   },
+  ruby: {
+    image: 'ruby:3.2-alpine',
+    filename: 'main.rb',
+    runCmd: (file) => `ruby ${file}`
+  },
+  php: {
+    image: 'php:8.2-cli-alpine',
+    filename: 'main.php',
+    runCmd: (file) => `php ${file}`
+  },
+  erlang: {
+    image: 'erlang:26-alpine',
+    filename: 'main.erl',
+    runCmd: (file) => `escript ${file}`
+  },
+  csharp: {
+    image: 'mcr.microsoft.com/dotnet/sdk:8.0-alpine',
+    filename: 'Program.cs',
+    // Scaffolds a console app in /tmp, moves the user file there, and runs it
+    runCmd: (file) => `/bin/sh -c "dotnet new console -o /tmp/app > /dev/null && cp ${file} /tmp/app/Program.cs && dotnet run --project /tmp/app"`
+  },
+  typescript: {
+    image: 'typescript:alpine', // Custom built image
+    filename: 'main.ts',
+    runCmd: (file) => `ts-node ${file}`
+  },
+  kotlin: {
+    image: 'kotlin:alpine', // Custom built image
+    filename: 'Main.kt',
+    // Compiles to jar in /tmp, then runs the jar
+    runCmd: (file) => `/bin/sh -c "kotlinc ${file} -include-runtime -d /tmp/out.jar && java -jar /tmp/out.jar"`
+  }
 };
 
 app.post('/execute', limiter, async (req, res) => {
@@ -90,10 +119,6 @@ app.post('/execute', limiter, async (req, res) => {
     await fs.writeFile(hostFile, code);
 
     // DOCKER SECURITY FLAGS:
-    // --network none: No internet
-    // --pids-limit 64: No fork bombs
-    // --memory 256m: Increased for compilation
-    // -v: Mount host dir to /app container dir
     const dockerCmd = `docker run --rm \
       --network none \
       --memory 256m \
@@ -124,4 +149,4 @@ app.post('/execute', limiter, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log('Executor running on port ${PORT}'));
+app.listen(PORT, () => console.log(`Executor running on port ${PORT}`));
