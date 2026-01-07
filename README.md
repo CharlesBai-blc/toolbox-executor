@@ -117,6 +117,7 @@ You must pre-pull the images to avoid timeouts on the first run.
 docker pull python:3.11-alpine
 docker pull node:18-alpine
 docker pull ruby:3.2-alpine
+docker pull php:8.2-fpm-alpine
 
 # Systems & Compiled
 docker pull golang:1.23-alpine
