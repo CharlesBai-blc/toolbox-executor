@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '/home/ubuntu/executor/src/.env' });
 const express = require('express');
 const { exec } = require('child_process');
 const fs = require('fs/promises');
