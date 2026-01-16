@@ -58,7 +58,7 @@ const LANGUAGES = {
   go: {
     image: 'golang:1.23-alpine',
     filename: 'main.go',
-    runCmd: (file) => `env CGO_ENABLED=0 go run ${file}`
+    runCmd: (file) => `/bin/sh -c "GOMAXPROCS=1 go build -ldflags='-s -w' -o /tmp/out ${file} && /tmp/out"`
   },
   java: {
     image: 'amazoncorretto:17-alpine',
