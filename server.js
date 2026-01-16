@@ -123,7 +123,7 @@ app.post('/execute', limiter, async (req, res) => {
       --network none \
       --memory 256m \
       --cpus 0.5 \
-      --pids-limit 64 \
+      --pids-limit 256 \
       -v ${hostDir}:/app:rw \
       -w /app \
       ${config.image} \
