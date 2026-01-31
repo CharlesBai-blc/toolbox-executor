@@ -130,7 +130,7 @@ app.post('/execute', limiter, async (req, res) => {
       ${config.runCmd(config.filename)}`;
 
     await new Promise((resolve) => {
-      exec(dockerCmd, { timeout: 10000 }, (error, stdout, stderr) => {
+      exec(dockerCmd, { timeout: 20000 }, (error, stdout, stderr) => {
         // Cleanup unique directory
         fs.rm(hostDir, { recursive: true, force: true }).catch(() => {});
 
