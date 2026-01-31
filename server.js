@@ -33,68 +33,79 @@ const LANGUAGES = {
   python: {
     image: 'python:3.11-alpine',
     filename: 'main.py',
+    timeout: 12000,
     runCmd: (file) => `python ${file}`
   },
   javascript: {
     image: 'node:18-alpine',
     filename: 'main.js',
+    timeout: 12000,
     runCmd: (file) => `node ${file}`
   },
   c: {
     image: 'gcc:12',
     filename: 'main.c',
+    timeout: 12000,
     runCmd: (file) => `/bin/sh -c "gcc ${file} -o /tmp/out && /tmp/out"`
   },
   cpp: {
     image: 'gcc:12',
     filename: 'main.cpp',
+    timeout: 12000,
     runCmd: (file) => `/bin/sh -c "g++ ${file} -o /tmp/out && /tmp/out"`
   },
   rust: {
     image: 'rust:1.83-alpine',
     filename: 'main.rs',
+    timeout: 12000,
     runCmd: (file) => `/bin/sh -c "rustc ${file} -o /tmp/out && /tmp/out"`
   },
   go: {
     image: 'golang:1.23-alpine',
     filename: 'main.go',
+    timeout: 45000,
     runCmd: (file) => `/bin/sh -c "GO111MODULE=off CGO_ENABLED=0 go run ${file}"`
   },
   java: {
     image: 'amazoncorretto:17-alpine',
     filename: 'Main.java', 
+    timeout: 12000,
     runCmd: (file) => `java ${file}` 
   },
   ruby: {
     image: 'ruby:3.2-alpine',
     filename: 'main.rb',
+    timeout: 12000,
     runCmd: (file) => `ruby ${file}`
   },
   php: {
     image: 'php:8.2-cli-alpine',
     filename: 'main.php',
+    timeout: 12000,
     runCmd: (file) => `php ${file}`
   },
   erlang: {
     image: 'erlang:26-alpine',
     filename: 'main.erl',
+    timeout: 12000,
     runCmd: (file) => `escript ${file}`
   },
   csharp: {
     image: 'mcr.microsoft.com/dotnet/sdk:8.0-alpine',
     filename: 'Program.cs',
-    // Scaffolds a console app in /tmp, moves the user file there, and runs it
+    timeout: 12000,
     runCmd: (file) => `/bin/sh -c "dotnet new console -o /tmp/app > /dev/null && cp ${file} /tmp/app/Program.cs && dotnet run --project /tmp/app"`
   },
   typescript: {
     image: 'typescript:alpine', // Custom built image
     filename: 'main.ts',
+    timeout: 12000,
     runCmd: (file) => `ts-node ${file}`
   },
   kotlin: {
     image: 'kotlin:alpine', // Custom built image
     filename: 'Main.kt',
-    // Compiles to jar in /tmp, then runs the jar
+    timeout: 12000,
     runCmd: (file) => `/bin/sh -c "kotlinc ${file} -include-runtime -d /tmp/out.jar && java -jar /tmp/out.jar"`
   }
 };
@@ -130,7 +141,7 @@ app.post('/execute', limiter, async (req, res) => {
       ${config.runCmd(config.filename)}`;
 
     await new Promise((resolve) => {
-      exec(dockerCmd, { timeout: 60000 }, (error, stdout, stderr) => {
+      exec(dockerCmd, { timeout: config.timeout }, (error, stdout, stderr) => {
         // Cleanup unique directory
         fs.rm(hostDir, { recursive: true, force: true }).catch(() => {});
 
