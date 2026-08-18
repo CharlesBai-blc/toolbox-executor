@@ -192,7 +192,7 @@ EOF
 cp .env.example .env
 # Edit .env with your settings:
 # PORT=3000
-# FRONTEND_URL=http://localhost:5173
+# FRONTEND_URLS=https://toolbox.charles-bai.com,http://localhost:5173
 ```
 
 ### 5. Run Development Server
@@ -227,12 +227,21 @@ curl -X POST http://localhost:3000/execute \
 3. **Process Management:** Use PM2 for automatic restarts:
    ```bash
    npm install -g pm2
-   pm2 start server.js --name executor
+   pm2 startOrRestart ecosystem.config.cjs --update-env
    pm2 save
    pm2 startup
    ```
 
 4. **Pre-pull Images:** Ensure all Docker images are pulled before going live to avoid cold-start timeouts.
+
+5. **Verify CORS and health:** The production frontend preflight must return a `204` with the correct origin:
+   ```bash
+   curl -i -X OPTIONS https://executor.charles-bai.com/execute \
+     -H "Origin: https://toolbox.charles-bai.com" \
+     -H "Access-Control-Request-Method: POST" \
+     -H "Access-Control-Request-Headers: content-type"
+   curl --fail https://executor.charles-bai.com/health
+   ```
 
 ---
 

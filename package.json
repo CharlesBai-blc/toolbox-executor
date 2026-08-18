@@ -1,0 +1,27 @@
+{
+  "name": "toolbox-executor",
+  "version": "1.0.0",
+  "description": "A sandboxed remote code execution (RCE) microservice built with **Node.js**, **Express**, and **Docker**. Designed to safely execute untrusted user code in 13 languages.",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CharlesBai-blc/toolbox-executor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CharlesBai-blc/toolbox-executor/issues"
+  },
+  "homepage": "https://github.com/CharlesBai-blc/toolbox-executor#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2"
+  }
+}
