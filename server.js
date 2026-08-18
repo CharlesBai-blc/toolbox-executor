@@ -1,21 +1,48 @@
-require('dotenv').config({ path: '/home/ubuntu/executor/src/.env' });
+require('dotenv').config();
 const express = require('express');
 const { exec } = require('child_process');
+const { randomUUID } = require('crypto');
 const fs = require('fs/promises');
 const path = require('path');
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
 
 app.set('trust proxy', 1);
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173'
-}));
-app.use(express.json());
+
+const allowedOrigins = new Set([
+  'https://toolbox.charles-bai.com',
+  'http://localhost:5173',
+  ...(
+    process.env.FRONTEND_URLS ||
+    process.env.FRONTEND_URL ||
+    ''
+  )
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean)
+]);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // Requests without an Origin header include health checks and server-to-server calls.
+    callback(null, !origin || allowedOrigins.has(origin));
+  },
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options('/execute', cors(corsOptions));
+app.use(express.json({ limit: '64kb' }));
 
 const PORT = process.env.PORT || 3000;
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Rate Limiting (10 reqs/min per IP)
 const limiter = rateLimit({
@@ -113,10 +140,13 @@ const LANGUAGES = {
 app.post('/execute', limiter, async (req, res) => {
   const { code, language } = req.body;
 
+  if (typeof code !== 'string' || code.length === 0) {
+    return res.status(400).json({ error: "Code must be a non-empty string" });
+  }
   if (!LANGUAGES[language]) return res.status(400).json({ error: "Unsupported language" });
   if (activeJobs >= MAX_CONCURRENT_JOBS) return res.status(503).json({ error: "Server busy." });
 
-  const jobID = uuidv4();
+  const jobID = randomUUID();
   const config = LANGUAGES[language];
 
   const hostDir = path.join('/tmp', jobID);
@@ -160,4 +190,14 @@ app.post('/execute', limiter, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Executor running on port ${PORT}`));
+function startServer(port = PORT) {
+  return app.listen(port, '0.0.0.0', () => {
+    console.log(`Executor running on port ${port}`);
+  });
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { app, allowedOrigins, startServer };
